@@ -26,23 +26,25 @@ void* func(void* arg) {
         partial_sums[id] += numbers[i];
     }
     printf("Thread %d: Partial sum is %d.\n", id, partial_sums[id]);
-    finished_array++;
-    pthread_mutex_lock(&lock);
-    if (finished_array == NUM_THREADS){
-        pthread_cond_signal(&cond);
-    }
 
+    pthread_mutex_lock(&lock);
+    finished_array++;
+   
+     if (finished_array == NUM_THREADS){
+        pthread_cond_signal(&cond);
+        }
+     pthread_mutex_unlock(&lock);
     // Phase 2: Calculate the total sum and average
     if (id == 0) { // Only the first thread calculates the final average
         int total_sum = 0;
         for (int i = 0; i < NUM_THREADS; i++) {
             total_sum += partial_sums[i];
         }
-        
+       
         double average = (double)total_sum / ARRAY_SIZE;
         printf("Total sum is: %d, Average is: %.2f\n", total_sum, average);
     }
-    pthread_mutex_unlock(&lock);
+    //pthread_mutex_unlock(&lock);
     return NULL;
 }
 
@@ -70,6 +72,8 @@ int main() {
     for (int i = 0; i < NUM_THREADS; i++) {
         pthread_join(threads[i], NULL);
     }
-   
+   pthread_join(array_count, NULL);
+   pthread_mutex_destroy(&lock);
+    pthread_cond_destroy(&cond);
     return 0;
 }
